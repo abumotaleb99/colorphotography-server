@@ -175,6 +175,22 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/class/feedback/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateFeedback = req.body;
+
+      const feedback = {
+        $set: {
+          feedback: updateFeedback.feedback,
+        },
+      };
+
+      const result = await classCollection.updateOne(filter, feedback, options);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
