@@ -47,6 +47,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     const userCollection = client.db("colorPhotography").collection("users");
+    const classCollection = client.db("colorPhotography").collection("classes");
 
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -56,6 +57,18 @@ async function run() {
 
       res.send({ token });
     });
+
+    const verifyInstructor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      if (user?.role !== "instructor") {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden message" });
+      }
+      next();
+    };
 
     app.get("/users/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
@@ -110,6 +123,12 @@ async function run() {
       };
 
       const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.post("/add-class", verifyJWT, verifyInstructor, async (req, res) => {
+      const newClass = req.body;
+      const result = await classCollection.insertOne(newClass);
       res.send(result);
     });
 
