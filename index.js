@@ -143,6 +143,21 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/my-classes/:email", async (req, res) => {
+      const toys = await classCollection
+        .find({
+          instructor_email: req.params.email,
+        })
+        .toArray();
+      res.send(toys);
+    });
+
+    app.get("/all-classes", async (req, res) => {
+      const cursor = classCollection.find({ status: "approved" });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.post("/add-class", verifyJWT, verifyInstructor, async (req, res) => {
       const newClass = req.body;
       const result = await classCollection.insertOne(newClass);
