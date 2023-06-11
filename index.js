@@ -48,6 +48,7 @@ async function run() {
     // await client.connect();
     const userCollection = client.db("colorPhotography").collection("users");
     const classCollection = client.db("colorPhotography").collection("classes");
+    const cartCollection = client.db("colorPhotography").collection("cart");
 
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -203,6 +204,24 @@ async function run() {
       };
 
       const result = await classCollection.updateOne(filter, feedback, options);
+      res.send(result);
+    });
+
+    app.get("/cart/:id", async (req, res) => {
+      const id = req.params.id;
+
+      if (req.decoded.email !== email) {
+        res.send({ admin: false });
+      }
+
+      const query = { _id: id };
+      const user = await cartCollection.findOne(query);
+      res.send(user);
+    });
+
+    app.post("/cart", async (req, res) => {
+      const item = req.body;
+      const result = await cartCollection.insertOne(item);
       res.send(result);
     });
 
