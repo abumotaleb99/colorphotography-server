@@ -207,21 +207,35 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/cart/:id", async (req, res) => {
-      const id = req.params.id;
+    app.get("/cart", verifyJWT, async (req, res) => {
+      const email = req.query.email;
 
-      if (req.decoded.email !== email) {
-        res.send({ admin: false });
+      if (!email) {
+        res.send([]);
       }
 
-      const query = { _id: id };
-      const user = await cartCollection.findOne(query);
-      res.send(user);
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden access" });
+      }
+
+      const query = { email: email };
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
     });
 
     app.post("/cart", async (req, res) => {
       const item = req.body;
       const result = await cartCollection.insertOne(item);
+      res.send(result);
+    });
+
+    app.delete("/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
 
