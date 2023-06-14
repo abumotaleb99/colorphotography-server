@@ -3,6 +3,8 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
+// console.log(stripe);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -49,6 +51,9 @@ async function run() {
     const userCollection = client.db("colorPhotography").collection("users");
     const classCollection = client.db("colorPhotography").collection("classes");
     const cartCollection = client.db("colorPhotography").collection("cart");
+    const paymentCollection = client
+      .db("colorPhotography")
+      .collection("payments");
 
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -207,7 +212,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/cart", verifyJWT, async (req, res) => {
+    app.get("/carts", verifyJWT, async (req, res) => {
       const email = req.query.email;
 
       if (!email) {
@@ -218,7 +223,7 @@ async function run() {
       if (email !== decodedEmail) {
         return res
           .status(403)
-          .send({ error: true, message: "forbidden access" });
+          .send({ error: true, message: "Forbidden access" });
       }
 
       const query = { email: email };
@@ -236,6 +241,32 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // Create payment intent
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
+    app.post("/payments", verifyJWT, async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+
       res.send(result);
     });
 
