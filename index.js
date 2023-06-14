@@ -196,19 +196,14 @@ async function run() {
       res.send(result);
     });
 
-    app.put("/class/feedback/:id", async (req, res) => {
+    app.put("/classes/feedback/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const options = { upsert: true };
-      const updateFeedback = req.body;
+      const feedback = req.body.feedback;
 
-      const feedback = {
-        $set: {
-          feedback: updateFeedback.feedback,
-        },
-      };
-
-      const result = await classCollection.updateOne(filter, feedback, options);
+      const result = await classCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { feedback: feedback } }
+      );
       res.send(result);
     });
 
