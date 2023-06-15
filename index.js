@@ -278,6 +278,16 @@ async function run() {
       res.send({ result, deleteResult });
     });
 
+    app.get("/enrolled-classes/:email", async (req, res) => {
+      const paymentHistory = await paymentCollection
+        .find({
+          email: req.params.email,
+        })
+        .sort({ date: -1 })
+        .toArray();
+      res.send(paymentHistory);
+    });
+
     app.get("/payment-history/:email", async (req, res) => {
       const paymentHistory = await paymentCollection
         .find({
