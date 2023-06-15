@@ -164,6 +164,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/all-instructor", async (req, res) => {
+      const cursor = userCollection.find({ role: "instructor" });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/top-instructor", async (req, res) => {
+      const cursor = userCollection.find({ role: "instructor" }).limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.post("/add-class", verifyJWT, verifyInstructor, async (req, res) => {
       const newClass = req.body;
       const result = await classCollection.insertOne(newClass);
