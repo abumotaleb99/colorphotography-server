@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
-// console.log(stripe);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -105,7 +104,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/users", async (req, res) => {
+    app.post("/users", verifyAdmin, async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
@@ -118,7 +117,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/users/admin/:id", async (req, res) => {
+    app.patch("/users/admin/:id", verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -131,7 +130,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/users/instructor/:id", async (req, res) => {
+    app.patch("/users/instructor/:id", verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -165,7 +164,10 @@ async function run() {
     });
 
     app.get("/top-classes", async (req, res) => {
-      const cursor = classCollection.find({ status: "approved" }).limit(6);
+      const cursor = classCollection
+        .find({ status: "approved" })
+        .sort({ total_enrolled: -1 })
+        .limit(6);
       const result = await cursor.toArray();
       res.send(result);
     });
