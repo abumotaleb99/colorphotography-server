@@ -164,6 +164,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/top-classes", async (req, res) => {
+      const cursor = classCollection.find({ status: "approved" }).limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.get("/all-instructor", async (req, res) => {
       const cursor = userCollection.find({ role: "instructor" });
       const result = await cursor.toArray();
