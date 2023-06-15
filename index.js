@@ -271,11 +271,23 @@ async function run() {
       const result = await paymentCollection.insertOne(payment);
 
       const id = req.body.cartId;
+      const classId = req.body.classId;
+      const filter = { _id: new ObjectId(classId) };
+
+      const updateDoc = {
+        $set: {
+          available_seats: req.body.available_seats,
+          total_enrolled: req.body.total_enrolled,
+        },
+      };
+
+      const updateResult = await classCollection.updateOne(filter, updateDoc);
+
       const query = { _id: new ObjectId(id) };
 
       const deleteResult = await cartCollection.deleteOne(query);
 
-      res.send({ result, deleteResult });
+      res.send({ result, updateResult, deleteResult });
     });
 
     app.get("/enrolled-classes/:email", async (req, res) => {
