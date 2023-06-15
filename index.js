@@ -248,7 +248,8 @@ async function run() {
 
     // Create payment intent
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
-      const { price } = req.body;
+      // const { price } = req.body;
+      const price = req.body.price;
       const amount = parseInt(price * 100);
 
       // Create a PaymentIntent with the order amount and currency
@@ -269,6 +270,26 @@ async function run() {
       const payment = req.body;
       const result = await paymentCollection.insertOne(payment);
 
+      const id = req.body.cartId;
+      const query = { _id: new ObjectId(id) };
+
+      const deleteResult = await cartCollection.deleteOne(query);
+
+      res.send({ result, deleteResult });
+    });
+
+    app.get("/payment-history/:email", async (req, res) => {
+      const paymentHistory = await paymentCollection
+        .find({
+          email: req.params.email,
+        })
+        .sort({ date: -1 })
+        .toArray();
+      res.send(paymentHistory);
+    });
+
+    app.get("/users", verifyJWT, async (req, res) => {
+      const result = await userCollection.find().toArray();
       res.send(result);
     });
 
